@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rimas e Rumos - Uma Exploração Interativa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- 
+        Paleta Escolhida: Warm Neutrals
+        Plano de Estrutura da Aplicação: Uma aplicação de página única projetada para exploração temática em vez de leitura linear. A estrutura central é um menu de navegação lateral fixo que representa as 8 categorias temáticas identificadas na 'Lista Temática' do documento fonte. Isso permite que o utilizador compreenda imediatamente o âmbito do livro e mergulhe em tópicos de interesse. Uma área de conteúdo principal exibe dinamicamente os poemas e a prosa associados ao tema selecionado. Esta abordagem não linear e orientada pelo utilizador melhora a usabilidade ao transformar o livro numa base de dados explorável de pensamento poético e filosófico, tornando o conteúdo mais acessível e envolvente. Uma secção 'Sobre' fornece contexto através do prefácio e informações do autor.
+        Escolhas de Visualização e Conteúdo: Informação do Relatório: O documento é puramente textual (poemas e prosa). Objetivo: Permitir que os utilizadores explorem a obra do autor pelos seus temas centrais. Método de Visualização/Apresentação: Um visualizador de texto dinâmico. A navegação principal consiste em botões para cada um dos 8 temas. O conteúdo é apresentado numa área limpa e com rolagem, com tipografia aprimorada para legibilidade. Interação: O utilizador clica num botão de tema na navegação. O JavaScript interceta este clique, recupera todo o conteúdo associado (poemas/prosa) de um objeto de dados e renderiza-o dinamicamente na área de conteúdo principal. O tema ativo é visualmente destacado. Justificação: Uma vez que não há dados quantitativos, os gráficos são desnecessários. Uma interface interativa baseada em texto é a forma mais direta e eficaz de tornar o conteúdo explorável. Evita a restrição linear de um livro e capacita o utilizador a navegar pela paisagem mental do autor com base no interesse pessoal, o que é uma experiência de utilizador mais moderna e envolvente. Biblioteca/Método: JavaScript puro para toda a lógica, Tailwind CSS para estilização.
+        CONFIRMAÇÃO: SEM gráficos SVG utilizados. SEM Mermaid JS utilizado. 
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F4F1EC;
+        }
+        .prose-custom h3 {
+            font-family: 'Lora', serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            margin-top: 2.5rem;
+            color: #4A403A;
+        }
+        .prose-custom p, .prose-custom .poem-verse {
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            color: #5E5046;
+        }
+        .prose-custom .poem-verse {
+            margin-bottom: 0;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            background-color: #D5C6B5;
+            color: #4A403A;
+            transform: translateX(4px);
+        }
+        .content-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-[#4A403A]">
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-1/4 max-w-xs bg-[#EAE3DA] p-6 sticky top-0 h-screen overflow-y-auto hidden md:block">
+            <h1 class="text-3xl font-bold text-[#4A403A] font-['Lora']">Rimas e Rumos</h1>
+            <p class="text-sm text-[#786A5F] mt-1 mb-6">por José Alves do Carmo</p>
+            <nav id="nav-menu" class="space-y-2">
+                <!-- Navigation links will be inserted here by JS -->
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="w-full md:w-3/4 p-6 md:p-12 overflow-y-auto">
+            <div class="max-w-3xl mx-auto">
+                <!-- Mobile Header & Dropdown -->
+                <div class="md:hidden mb-6">
+                    <h1 class="text-3xl font-bold text-[#4A403A] font-['Lora']">Rimas e Rumos</h1>
+                    <p class="text-sm text-[#786A5F] mt-1 mb-4">por José Alves do Carmo</p>
+                    <select id="mobile-nav-select" class="w-full p-3 border border-[#D5C6B5] rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-[#C1A98F]">
+                        <!-- Mobile navigation options will be inserted here by JS -->
+                    </select>
+                </div>
+                
+                <div id="content-area" class="prose-custom">
+                    <!-- Content will be inserted here by JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const contentData = {
+            "sobre": {
+                title: "Sobre a Obra",
+                content: [
+                    {
+                        type: "prose",
+                        title: "Prefácio",
+                        text: `É com muita alegria e até emocionado que apresento ao leitor o livro "Rimas e Rumos", de autoria do meu amigo e irmão, Pastor José Alves do Carmo, Bacharel em Teologia, Jornalista, membro da Academia Guarulhense de Letras, e atualmente também Presidente da Associação Evangélica de Guarulhos. \n\nConheço de perto o Pastor José Alves do Carmo há mais de cinquenta anos e posso afirmar que, desde que teve uma experiência mais profunda com Cristo, ainda jovem, passou a se envolver com poesia e literatura, demonstrando grande criatividade, fruto de uma mente bastante fértil, externada pelos seus poemas e artigos para jornais diversos. \n\nHoje, entretanto, depois de toda essa experiência, de uma forma muito mais amadurecida, lança ao público o livro "Rimas e Rumos", coletânea selecionada dos melhores e mais inspirativos fragmentos poéticos e literários do autor. \n\nConfesso que ao reler parte desses poemas, publicados pela Academia Guarulhense de Letras, fiquei emocionado pela beleza poética neles encontrada. Ainda naquele clima de enlevo espiritual, fui rápido ao telefone para dar os parabéns ao autor, pela sua grande inspiração e sensibilidade poética. \n\nCaro leitor, estou certo de que você, ao começar a ler esta obra, quererá ir até o final, sem perder a leitura de nenhum deles. \n\nParabéns pelo livro que chega às suas mãos. \n\nHélio Maurício Brum (Bispo da Irmandade Metodista Ortodoxa e Pastor Presidente da Igreja de Honório Gurgel - Rio de Janeiro)`
+                    },
+                    {
+                        type: "prose",
+                        title: "Dedicatória",
+                        text: `À MINHA QUERIDA "DALVA", A ESTRELA DA MINHA VIDA.\n\nDISSE UM GRANDE EDUCADOR EM TOM GRAVE E PROFUNDO:\nEDUCAI PRIMEIRO AS MÃES E TRANSFORMAREIS O MUNDO!\n\n"AO REI CONSAGRO O QUE COMPUS"\n(Salmo 45)`
+                    }
+                ]
+            },
+            "fe": {
+                title: "Fé e Espiritualidade",
+                content: [
+                    { type: "poem", title: "Perdão", verses: ["Ref. Lucas 17:3-5", "Perdoar é esquecer para sempre a ofensa recebida", "Perdoar é amar ao transgressor", "É viver nos píncaros da glória", "Perdoar é repetir de Cristo a sua história", "", "Perdoar é viver num plano mais alto", "Do que os padrões do mundo moderno", "Perdoar é amar ao próximo como a si mesmo", "Perdoar é estar junto ao coração de Deus", "Perdoar é não levar em conta o desvario dos ateus", "", "Perdoar é juntar ao transgressor brasas vivas", "Que purificam e a mente renova", "Perdoar é ser golpeado e estar de pé", "Suplicando a Deus que aumente a nossa fé", "", "Perdoa quem sente a grandeza do perdão", "Quem tem o sentimento que houve em Cristo", "Quem parte da glória já tenha visto", "Quem na fé renovada mudou a direção", "Perdoa quem tem um novo coração"] },
+                    { type: "poem", title: "Predestinação", verses: ["Este Deus criador onisciente –", "Tão retilíneo, onipotente –", "Ordenou que todos os homens", "Fossem um dia inocentes", "", "Antes de serem maus", "Odiando – fazendo guerra", "Haveriam de ser iguais", "Em toda a face da terra", "", "Chorando o mesmo choro", "Sentindo o que todos sentem", "As crianças são iguais", "Em todos os continentes", "", "Nascem todas livres", "Sem ódios ou preconceito", "Não têm códigos de ética", "Cada uma tem o seu jeito", "", "Até mesmo um marginal", "Há de ter na lembrança", "Que algum dia já foi gente", "Foi amado - foi criança"] },
+                    { type: "poem", title: "Jó, o Homem Crente", verses: ["Viajante da órbita terrestre", "Satanás - o astronauta marginal", "Se apresenta entre os filhos de Deus", "Destilando seu veneno mortal", "", '"Vistes meu servo Jó?" - pergunta Deus.', "Homem humilde e paciente", "Crente leal e poderoso", "O mais rico do oriente", "", 'Com sórdida astúcia e maldade,', 'Responde o "pai da mentira":', '"Não há paciência e lealdade', 'Quando falta o dinheiro,', 'Quando a doença bate à porta,', 'Quando está vazio o celeiro.', '', 'Vou provar da fé a utopia,', 'Ante às cinzas do altar;', 'Vou olhá-lo frente a frente', 'E fazê-lo blasfemar!"', "", "Do inferno as portas se abrem", "Com espíritos imundos em legiões", "Para travar a luta ingente", "Falanges do mal se alinham", "Contra Jó - O homem crente.", "", "Vendo os filhos dizimados", "Ante os bens saqueados", "Raspa a cabeça, rasga o manto", "Adora a Deus o homem santo", "", "Satanás não suporta o encomiástico gesto", "De quem na dor mais profunda", "Não se desespera, não maldiz a sorte", "Disposto a ser fiel até a morte", "", "Vociferando coisas do inferno", "Com um plano mais nefando", "Satanás com ódio e sarcasmo", "Bate em retirada com seu bando", "", "O anjo marginal, numa última cartada,", "Numa tentativa desesperada,", "Ordena a mobilização total,", "A guerra fria - sutilezas das palavras;", "Os inocentes úteis, os mercenários", "E todo o corpo diplomático infernal.", "", "Línguas virulentas - fratricidas,", "Chacais asquerosos pestilentos;", "Fagulhas incandescentes, incendiárias;", "Abutres cruéis - corvos nojentos.", "", "O murmúrio sórdido - ferino;", "O deboche, a maledicência;", "O cochicho, a hipocrisia,", "Contestando sua inocência.", "", "Jó, caráter infrangível,", "Estirpe de nobreza;", "Ante o terrorismo - a sabotagem;", "Não se curva, não se dobra;", "Vendo no céu sua defesa. (Jó 16:19)", "", '"Eu sei que o meu redentor vive". (Jó 19:25)', "Levantarei das cinzas - a luz raiou!", "Desde agora e para sempre,", "Bendito seja o nome do Senhor!", "", "Satanás lança cinzas e bactérias", "Do seu tenebroso arsenal,", "E desenha no corpo de Jó", "O mapa da chaga mortal...", "", '"Vou deixá-lo desprezado', 'E só com a chaga pestilenta,', 'E com a ferida nojenta', 'O curvarei até o pó!"', "", "A Corte demoníaca se engalana", "Aguardando o soberano campeão,", "Que promete trazer em sua mão", "A cabeça santa do varão de Deus;", "Para alegria do inferno e júbilo dos ateus.", "", "Uma voz ressoa - da fé a gama;", "Os alicerces do inferno se abalam,", "Um clarão ilumina, o éter inflama;", 'O inferno ouve em confusão e horror:', '"O Senhor deu, o Senhor levou –', 'Bendito seja o nome do Senhor"!', "", "A luta foi renhida,", "Mas a batalha vencida.", "Embraçando o escudo da fé,", "Na borrasca do mar bravio,", "Quando fumega o pavio,", "O crente fica de pé."] },
+                    { type: "poem", title: "Sabedoria", verses: ["Sabedoria é fé e razão bem definida", "Ser sábio é encontrar em Deus a própria vida", "Ser sábio é romper com tudo que é mesquinho", "Ser sábio é semear amor pelo caminho", "", "Aos tacanhos, oblíquos e bitolados", "Lavar os pés - ser sábio é amar até à morte", "Ser sábio é não carregar no rosto a arrogância", "E não ver em ser servido a própria sorte", "", "Sabedoria é obra de arte nestes caminhos", "Que se nos depara em nosso dia a dia", "Sabedoria é sublimar tudo que é humano", "É viver em paz e perfeita harmonia", "", "É sábio olhar destes vales as montanhas", "É sábio descortinar grandes horizontes", "A sabedoria é ter os pés aqui na terra", "Sabedoria é ter visão dos mais altos montes", "", "Sabedoria é como a música que inebria", "Sabedoria é como o brilho mais incessante", "A sabedoria é como favo de mel", "A sabedoria é mais pura do que o diamante"] },
+                    { type: "poem", title: "A Palavra", verses: ["Palavras valem mais que prata ou ouro", "Guarda bem esse tesouro", "Seja teu falar sim, sim; não, não", "Nunca fale se não tiver razão", "", "Torne a vida cada vez mais rica", "Com a palavra boa que edifica", "Torne assim mais nobre tua missão", "Promovendo paz entre irmãos", "", "Palavra sábia não volta atrás", "Evita a guerra - promove a paz", "Acerta o alvo - não vacila e não treme", "É mão firme que segura o leme", "", "Aquela palavra boa e vera", "É como um rastro que não se desfaz", "Seja ela falada ou seja escrita", "É imortal - tem vida infinita", "", "Há palavras que nunca se esquece", "Que aviva o mortal e ao peito aquece", "Medita, avalia com sobriedade", "Há palavras que deixam saudade"] },
+                    { type: "prose", title: "Apólogo do Natal", text: 'Naquela noite a lua parecia estar deitando em cima dos telhados - era toda nossa: O céu vestido de azul com seus botões de ouro, lançava paz sobre toda a terra, velando o sono dos homens e dos animais - aquela noite era uma noite singular.\n\nTodos tinham a visão da lua deitada em seus telhados e uma estrelinha inquieta, zelosa da sua luz, dizia: nasceu Jesus!\n\nHouve paz em toda a terra, os homens não fizeram guerra; a terra se curvou e o inferno silenciou - A estrelinha eufórica, inquieta, audaz, desceu à terra e prostrou-se ante o Príncipe da Paz.\n\nO menino sorria no colo santo de sua mãe e a brisa sussurrava o mais doce e melodioso canto celestial: Tudo é paz, tudo é paz.\n\nNo perfume das flores, no silêncio da alma; na velha e tosca estrebaria; tudo é paz no berço de palha e no coração de Maria; por isso, o menino sorria.\n\nOuro, incenso e mirra, os reis magos lhe ofertaram, e naquele instante, "a justiça e a paz se beijaram."\n\nO Profeta, Sacerdote e Rei - Emanuel (Deus conosco), ali estava deitado num berço de palha, porque não havia lugar para Ele na estalagem, nas casas dos ricos, nas choupanas dos pobres e no coração do povo.\n\n"O Profeta maior que Moisés", o Sacerdote segundo a ordem de Melquisedeque; o Rei dos reis; o Verbo que fez carne - no curral, na estrebaria, sob olhar sereno de José e as carícias ternas de Maria.\n\nFoi o ato Central da História do mundo, anunciando: Liberdade, Igualdade e Fraternidade entre os homens, sendo o traço retilíneo do berço até a cruz. O castigo que nos trás a paz estava sobre ele; e abriu de Deus o tesouro; desmanchou as obras de satanás e mostrou-lhes o caminho da paz - Do Jardim do Éden até o tempo predito na História dos Hebreus - História conhecida do velho e da criança, dos reis, dos nobres e do povo; história de fé, de amor e de esperança. Agora a predição se cumpria - Jesus estava nos braços de Maria!\n\nTodos queriam ver o Deus-Menino. Uma pomba voou sobre uma cerca ao lado; um coelhinho ligeiro, assustado, também se fez presente enquanto o menino dormia docemente. Tudo era luz, tudo era vida; o jasmim, a roseira, a margarida, as flores exalavam mais odor e embriagadas de amor cantavam: Deus é amor! Deus é amor! Naquela noite a lua era toda nossa; eram nossas as estrelas e o céu também. Nosso o presente de Deus - o menino Jesus.' },
+                ]
+            },
+            "familia": {
+                title: "Família e Valores",
+                content: [
+                     { type: "poem", title: "Honra Teus Pais", verses: ["Honra teus pais enquanto vivos", "Honra-lhes o nome por onde fores", "Se lhes negas filial afeto", "Não vás ao túmulo levando flores", "", "Tu és semente que germinou no ventre", "Sugando-lhe energias", "Foste crescendo, macerando os seios", "Que te saciavam ao passar dos dias", "", "Tu és deles a continuação da vida", "Suas lembranças da áurea mocidade", "Alegrando-lhes o esvaecer da vida", "Suavizando-lhes o peso da idade", "", "Mostra-lhes, pois, o mais sincero amor", "Sem fingimento vil da hipocrisia", "Nada vale o calor de muitas lágrimas", "Sobre a lousa da mortalha fria"] },
+                     { type: "prose", title: "A Flor Macerada", text: "Lá naquelas planícies de terra virgem, estava o homem recém-criado, deitado sob a colcha macia da terra - sua mãe e amiga. De repente abriu a sua boca e sussurrou algo que, mais tarde, se chamou suspiro - ondas sonoras que, saindo do seu interior, foram conduzidas até o cume do monte e, lá ficaram para sempre, constituindo o que hoje é conhecido por murmúrio da tarde. Os passarinhos deixaram de cantar como se estivessem escondendo de algo terrível que se aproximava lenta e sutilmente - era a noite merencória e triste que encobria a terra com seu negro manto.\n\nO homem levantou preocupado e não viu mais a montanha - quedou-se pensando uma porção de coisas indecifráveis, pois tinha sido criado para tomar conta daquele sítio e, agora, o que estava acontecendo ele não podia compreender nem controlar, pois já não podia ver as ramagens à sua volta, nem entender as vozes ululantes que lhe apavoravam e com as quais ele não podia se identificar - andou, fez o que pôde, mas, cansado, desolado e vencido, atirou-se debaixo de um arbusto e recolheu-se ao mundo interior de mil sonhos. Entristeceu e se sentiu infeliz. A angústia e a solidão lhe roubaram a paz, fechou os olhos e adormeceu. O Criador condoou-se daquele bípede - obra-prima das suas mãos e o visitou e resolveu fazer-lhe uma cirurgia, tirando-lhe uma costela, das muitas que lhe havia dado, e formou uma linda mulher.\n\nO homem estava sonhando com o desconhecido, e assim que despertou, viu que algo extraordinário havia acontecido - ao seu lado, estava a companheira dos seus sonhos, carne da sua carne, osso dos seus ossos, o inestimável complemento da sua vida. A alegria foi tanta que o homem esqueceu por completo o dever que tinha com o seu criador, passando a viver feliz ao lado da mulher amada - Deus não contestou, pois Deus é amor infinito. Deixou que o homem tivesse o seu dia cheio de sonhos e provisões em seu celeiro - a mulher, olhando bem dentro dos olhos do seu companheiro, sorriu. O homem fitou-a demoradamente e, colhendo uma flor que pendia em uma haste, aspirou o seu perfume e, embriagado com tanta beleza - olhou o corpo da mulher e esmagou brutalmente a flor, que, macerada, caiu aos seus pés.\n\nDesde aquele dia, toda a beleza do jardim foi empalidecendo e murchando e todo o perfume foi se esvaindo aos pés do homem. A mulher, que era toda modéstia e nobreza, ficou olhando a flor esmagada aos pés brutais do homem, como se fosse a sua própria alma que teria de viver para ser ferida, como “o sândalo que perfuma o machado que o fere\"." },
+                     { type: "poem", title: "A Mão Astuta", verses: ["Lá na roça era princesa", "Com linda flor no cabelo", "Confundindo sua beleza", "Com carinho e desvelo", "", "Era então menina moça", "Suave sorriso aberto", "Mas a sombra da desgraça", "Já rondava por perto", "", "Existe entre o céu e inferno", "Um negro abismo silente", "Armadilha marginal", "Para prender inocentes", "", "Da pobre menina moça", "Alcançou-lhe a mão astuta", "Levou-a para a cidade", "Mandou-lhe ser prostituta"] },
+                ]
+            },
+            "natureza": {
+                title: "Natureza e Vida Simples",
+                content: [
+                    { type: "poem", title: "Poesia e Natureza", verses: ["Na crista da serra", "No orvalho da mata", "Geme a juriti", "E chora a cascata", "", "O moinho orgulhoso", "Despreza o pilão", "Trabalha cantando", "Esmagando o grão", "", "Atrás da serra", "O sol escondendo", "Nas ramas e folhas", "O orvalho descendo", "", "Levanta outra vez", "Há sol no horizonte", "Refaz as forças", "Levanta o semblante", "", "No ventre do sol", "Calor e energia", "Força e esperança", "No romper do dia", "", "Reflete a luz", "Em cada caminho", "Trina o pássaro", "Balança o ninho", "", "Canta a cigarra", "Alegra a gente", "O calor da terra", "Rebenta a semente", "", "Ágil beija-flor", "No ar se sustém", "O tiziu voa", "Em seu vai e vem", "", "Recosta a cabeça", "A tarde que cai", "Refaz tuas forças", "O dia se esvai", "", "Música no brejo", "A coruja cisca", "Vem o vagalume", "Com seu pisca-pisca", "", "Na tosca choupana", "Silêncio profundo", "A noite escura", "Encobre o mundo"] },
+                    { type: "poem", title: "Cadência da Natureza", verses: ["A folha verde", "O fruto amarelo", "O galho que verga", "O pé de marmelo", "", "Pássaro cantando", "A fonte que chora", "A lua que vem", "O sol vai embora", "", "Olhar perdido", "Na curva da estrada", "A criança que dorme", "A mãe acordada", "", "A cabra amarrada", "A corda comprida", "O galho estendido", "A folha caída", "", "A água da bica", "A horta, o canteiro", "A couve que cresce", "O gosto, o cheiro", "", "A roupa lavada", "O pau, o varal", "A tranca da cerca", "O boi, o curral", "", "O galo que canta", "Aurora do dia", "Galinha que cisca", "O pinto que pia", "", "O rio que corre", "O tempo que voa", "A sombra que passa", "O sino que soa", "", "O gado mugindo", "A cana espremida", "A tacha que espuma", "A garapa fervida", "", "O mato cortado", "A abelha zumbindo", "A terra que cheira", "A chuva caindo", "", "Cachorro latindo", "Debaixo da escada", "Bezerro mamando", "A vaca malhada", "", "O mundo é pequeno", "O céu é distante", "Enquanto há vida", "Trabalho constante", "", "O sol vai saindo", "Detrás do monte", "Lançando seus raios", "Nas águas da fonte", "", "Há gotas de orvalho", "Caindo no chão", "Há flores se abrindo", "Em cada botão", "", "A vida é trabalho", "A tudo enriquece", "A semente cai", "O fruto aparece", "", "A fé que anima", "Trabalho, bonança", "O amor é fruto", "A flor, esperança"] },
+                    { type: "poem", title: "Há Poesia em Meu Celeiro", verses: ["Estou sentindo a poesia extravasar", "Nos gorjeios e nos ninhos que balançam", "Nas formas e nas cores mais candentes", "Ou no sorriso inocente da criança", "", "É vida que renova a cada instante", "Nas bordas do caminho em meu celeiro", "Nas nuvens carregadas pelo vento", "Que enriquecem e perfumam meu canteiro", "", "Na mutação das paisagens destas matas", "Beijadas pelo sol e pela lua", "Neste quadro primoroso e exuberante", "A natureza se apresenta nua", "", "Enquanto o sol vai arrastando o manto", "Para esconder e dormir atrás da serra", "A poesia vai se espalhando pelos ares", "Nos vapores que exalam desta terra", "", "Esta obra-prima que em verso ou prosa", "Homem algum jamais escreveu", "Revigora cada dia minha fé", "Envergonha e confunde os ateus"] },
+                    { type: "poem", title: "Meus Sonhos e Utopias", verses: ["Em meus sonhos mais profundos", "Viajando ao redor do mundo", "Sonhei com o rio Tietê.", "Era a esperança do futuro", "Nas heroicas conquistas,", "Era o \"Nilo\" dos paulistas.", "", "Nas noites das garoas frias", "A luz pálida refletia,", "Havia música nos ares,", "Das grandes matas vinham os filhos", "Que tinham no olhar um brilho,", "Vendo os filhos dos mares.", "", "Vi as borboletas voando,", "Ouvi os pássaros cantando,", "Nas barrancas, muito fruto,", "Naveguei em águas frias", "Neste misterioso sonho", "Entre minhas utopias.", "", "Uma misteriosa estrela errante", "Vai guiando os bandeirantes,", "Abrindo estrada mais certa,", "A noite transmuda em dia", "Na deslumbrante fantasia,", "Para a grande descoberta."] }
+                ]
+            },
+            "critica": {
+                title: "Reflexão e Crítica Social",
+                content: [
+                    { type: "poem", title: "Inveja - Doença da Alma", verses: ["Inveja - doença da alma", "Que se infiltra num segundo", "No coração do homem", "Que ama as coisas do mundo", "", "Infeliz quem agasalha a semente", "Da erva daninha", "Que sugando toda força", "Enfraquece e amesquinha", "", "Sua trama contra a verdade", "Congrega o mundo ateu", "Emperra a prosperidade", "Entre os filhos de Deus", "", "A inveja é doença sem cura", "Que corrói com fúria voraz", "O invejoso é filho da usura", "E neto de Satanás", "", '"E os patriarcas, comovidos de inveja, venderam a José para o Egito; mas Deus era com ele" (At 7:9). "Mas os Judeus desobedientes, movidos de inveja, tomaram consigo alguns homens perversos, dentre os vadios e, ajuntando o povo, alvoroçaram a cidade, e assaltando a casa de Jason, procuravam tirá-los para junto do povo" (At 17:5). "Porque sabia que por inveja o haviam entregado" (Mt 27:18).'] },
+                    { type: "prose", title: "A Moderna Criação do Mundo", text: '"No século das luzes", os sábios criaram o mundo. Havia uma superpopulação e muitas pessoas passando fome; as águas estavam poluídas, a atmosfera impregnada de monóxido de carbono e radioatividade e a camada de ozônio estava sendo furada. Os sábios disseram: "Haja luz", e houve luz sobre Hiroshima. Os sábios concluíram que a luz era boa.\n\nA fome continuou a assolar mais de um terço da humanidade; crianças famintas e abandonadas perambulavam pelas ruas e escravizadas nos campos. Os sábios resolveram ir à lua e investiram grandes somas de dinheiro na audaciosa tarefa.\n\nOs sábios disseram: "Façamos separação entre as raças", e viram que a branca era boa; as demais eram inconvenientes. Os sábios investiram na produção de alimentos usando técnicas modernas, e houve superprodução, então os sábios destruíram grande parte em proveito da economia, enquanto os miseráveis da terra continuavam a passar fome. Os sábios disseram: "Produzam os mares grandes seres e os ares voláteis". Grandes navios, submarinos e porta-aviões singraram as águas dos oceanos; aviões supersônicos rasgaram os ares portando ogivas nucleares sobre as cabeças dos homens famintos.\n\nOs sábios disseram: "Façamos os homens tão sábios como nós", e deram ordens para que se odiassem e se destruíssem mutuamente. Agora os sábios estão estudando o DNA de Adão e criando a mulher mitocondrial - mãe de todas as demais mulheres do mundo. Muitos, dizendo-se sábios, tornaram-se loucos, pervertendo o juízo e a justiça; fazendo-se abomináveis, adorando a obra das suas próprias mãos, colocando os valores econômicos acima da moral. "O Diabo trabalha até agora e os sábios também"... E houve trevas sobre toda a face da terra.' },
+                    { type: "prose", title: "No Reino da Mentira", text: 'O povo se curva ante à mão que asfixia, na mais nefanda e execrável idolatria, em face ao despotismo que tudo leva de permeio, onde o fim justifica o meio. Qual a diferença entre o presente e o passado, sem se falar em culpa ou pecado? Sem lembrança de um ideal ou revolução, onde a fogueira arde no corpo e na mente nesta inquisição?\n\nOs interesses maiores desta história fazem do abominável a sua glória. O tempo apaga o que escreveu a orgulhosa nação na véspera de "São Bartolomeu". O "infalível" não tem idade, nasceu com o Diabo, enganando a humanidade. "O monstro das trezentas concubinas" ficou em eras distantes, apagando seus feitos na mente do estudante. Não crer que o Diabo existe é meta do ardiloso enganador que tem mil disfarces, com peias e sem pudor. "Me engana que eu gosto", diz a plebe delirante, se tem pão e circo, vamos adiante....\n\nTodos se esforçam na construção da Torre de Babel, enquanto o Diabo ri e torce o rabo, engalanando o seu quartel - "Que morra Jesus Cristo e viva o Papai Noel!". "Ou crê ou morre", é sentença da nova inquisição que mutila e zomba da razão. Há modulação mental na tenra mente da criança, desfazendo o que no mundo ainda resta de esperança. Homens cultos alienados carregam Jesus morto num caixão - ídolos feitos pelas suas próprias mãos.\n\nAs artimanhas de Satanás mostram o inferno como sendo um paraíso, em obras de arte espalhadas por toda parte - na escultura, na música ou poesia, tudo deturpa o reino da anarquia. A dialética da incredulidade impera no mundo sofista, falando da nova era que já se avista. Não adianta lutar contra o determinismo na balofa ortodoxia à beira do abismo. O teólogo mostra o seu zelo, coando um mosquito e engolindo um camelo.\n\nA Justiça estremece temerária, ante a astúcia tão cruel e tão mordaz - O mundo fala de paz enquanto rebenta a espoleta, com a nívea pomba espetada na ponta da baioneta. Todos querem transformar o mundo, cada um ao seu jeito, mas o homem nada transforma com o vírus do pecado alojado em seu peito.\n\n"A vida é uma farsa", diz o palhaço que ganha mal - "que o circo pegue fogo no palco do carnaval". "Não fale em miséria, fome ou desdita, pois só na fantasia o povo acredita.". Fale baixo para quem gosta de ser capacho - quem fala alto e protesta, não pode entrar na festa. Quem fala a verdade gosta de ser ouvido, mas pode morrer de fome, ficar pobre e falido - não se esforce, fale sempre o que o povo gosta. Tudo é velho no reino da mentira - de sofisma em sofisma, com visão em falsos prismas.' },
+                    { type: "poem", title: "As Mãos de Quem Trabalha Estão Vazias", verses: ["Com uma bolsa e dois filhos vai ao mercadão,", "A jovem esposa do honesto operário", "A lista de compras é modesta em sua mão,", "Lindos sonhos povoam o seu itinerário.", "", "O terceiro filho em seu ventre mexe e pula,", "Não agasalha ainda o feio pecado da gula;", "O estigma de mais um ser que vem ao mundo,", "Para ser honesto operário ou vagabundo.", "", "Trabalho não é mais honroso para o pobre,", "Antes, a mais grossa utopia dizer que é nobre;", "Promover a grande mentira do nome", "De uma classe que trabalha passando fome.", "", "As prateleiras dos mercados estão cheias,", "Mas as mãos de quem trabalha estão vazias;", "Nosso ouro segue veloz para mãos alheias,", "Levando ao caos toda nossa economia.", "", "Esqueça agora a jovem esposa e seus filhos,", "E não me pergunte se outros já nasceram.", "Muitos olhos infantis perdem o brilho", "E muitos filhos tão sonhados já morreram."] },
+                ]
+            },
+            "existencia": {
+                title: "Ciência e Existência",
+                content: [
+                    { type: "prose", title: "Quadro da Criação - Visão Bíblica e Científica", text: '"No princípio criou Deus os céus e a terra" (Gn 1.1). No princípio... Tempo indeterminado Milhões, bilhões ou trilhões de anos. Deus não está sujeito ao tempo (Gn 1.14). O tempo foi estabelecido por causa do homem -- o sol só aparece na criação no quarto período (Gn 1.14-18).\n\nO versículo dois é um entre parênteses - "E a terra era sem forma e vazia; havia trevas sobre a face do abismo, e o Espírito de Deus se movia sobre a face das águas"). Conclui-se que nesta fase da criação já existia terra e água. A face do abismo era a face exterior da terra.\n\nConforme dados científicos disponíveis, as águas só vieram a existir na terra há três bilhões de anos. Deus não criaria seres vivos, sem primeiro criar condição para a sua sobrevivência. O homem foi criado do pó da terra (átomo). "Diz o néscio no seu coração: “Não há Deus”." (Sl 14.1) Negar a existência de Deus é negar-se a si mesmo; negar a Deus é negar o Universo; negar a Deus é negar a racionalidade do ser humano. Rochas com mais de três bilhões de anos foram encontradas em regiões do Estado da Bahia. O telescópio espacial Hubble revolucionou o mundo científico com a descoberta de galáxias distantes da terra cerca de cinco bilhões de anos-luz. Jesus Cristo disse aos judeus: "Meu Pai trabalha até agora, e eu trabalho também: (Jó 5.17). A Bíblia nos fala de filhos dos homens e filhos de Deus - antropos e raça adâmica. É possível ter havido uma evolução, antes de Adão. O homem (Adão), foi criado perfeito (Gn 2.19). A desobediência (pecado), bloqueou a mente do homem (Adão). Mas, Jesus Cristo, o segundo Adão veio restaurar o homem, e criar uma raça eleita, uma nação santa e sacerdotal (1 Pe 2.9). A Igreja existe nos planos de Deus, antes da fundação do mundo (Ef 1.4). A missão da Igreja é abençoar o mundo.\n\nOs cientistas precisam ler a Bíblia; ignorá-la é perigoso. E os cristãos precisam estar atentos para os dados científicos disponíveis, Pois ignorá-los é atraso e ignorância. "A falsa ciência afasta o homem de Deus, a verdadeira ciência aproxima o homem de Deus" (Rousseau). "Conheçamos e prossigamos em conhecer a Deus"... (Os 6.3).\n\nNão é possível determinar nenhuma data do aparecimento do homem na terra – 140 datas são definidas como mera especulação. A computação judaica apresenta 3.483; Afonso de Castelo sugere 6.984. As declarações de Gênesis não são mais do que uma genealogia. A afirmação mais certa é da queda de Jerusalém até a vinda de Jesus Cristo.\n\nLembre do que disse Jesus: "Meu pai trabalha até agora e eu também". Na casa do Meu Pai há muitas moradas..." (Jo 14.2).' },
+                    { type: "poem", title: "O Átomo Onipresente", verses: ["Em dourados sonhos ou torvelinhos,", "Do imprevisível acaso ou sorte;", "Sigo cauteloso esses caminhos,", "Aspirando vida, enfrentando a morte.", "", "Ouço do pássaro o cantar sonoro,", "Da cachoeira o ribombar feroz;", "Se em meus versos a cantar eu choro,", "Sinto a angústia desse viver atroz.", "", "Estou vendo aqueles que estão chegando,", "E se atropelam porque estão com pressa;", "Não tenho tempo de viver a vida", "Que termina quando mal começa.", "", "Enquanto a chuva apaga meus rastros", "No barro mortal desse pobre mundo,", "Vou como o relâmpago que passa,", "Como o correr veloz de um segundo.", "", "O pó da terra (átomo onipresente),", "Desintegra no espaço sideral;", "A vida volta à fonte geradora,", "Ao Supremo Arquiteto Universal."] },
+                    { type: "poem", title: "Milagre Humano", verses: ["Eu era um corpo inanimado", "Entre o quartzo e o granito;", "Não sentia o sol em minha face", "Nem da fera ouvia o grito.", "", "Eu era filho da natureza", "Cumprindo na terra o meu papel;", "Não tinha tato ou paladar", "Para o amargo, cítrico ou mel.", "", "A mão humana quebrou o meu mutismo", "Nas chamas de um fogo infernal;", "Transformou-me em lâmina delgada,", "Num orgulhoso e vil punhal.", "", "Era assim minha vida inerte,", "Incerto o futuro e meu destino;", "Balança retilínea e justa", "Ou o mais desgraçado assassino.", "", "Nesta terra, neste céu azul,", "Tudo se transforma em fumaça;", "No milagre humano que ocorre,", "Mudando o bem da vida em desgraça."] }
+                ]
+            },
+             "emocoes": {
+                title: "Emoções e Sentimentos",
+                content: [
+                    { type: "poem", title: "O Riso", verses: ["O riso tem muitas cores;", "A cor do espaço perdido,", "Do vivo, do desbotado,", "As cores do indefinido.", "", "O riso tem muitas formas;", "Tem as formas inocentes,", "Tem as formas da nobreza,", "Tem as formas da serpente.", "", "Pode ser arma sutil", "Da mentira, da falsidade;", "Pode ser a expressão", "Da pureza e lealdade.", "", "O riso tem muito poder", "Nas mais altas decisões,", "Também pode ser o caminho", "Das grandes desilusões.", "", "O riso tem a semelhança", "Da flor e do agudo espinho,", "Do deboche, do desprezo;", "Do sentimento mesquinho.", "", "O riso sem prevenções,", "Da pureza, da bonança;", "Só pode ser encontrado", "Nos lábios de uma criança."] },
+                    { type: "poem", title: "Alegria", verses: ["Alegria, momento fugidio,", "Podendo ser tudo ou quase nada;", "Como o cântico suave que inebria,", "Um minuto, um segundo ou um instante;", "O relâmpago que passa brilhante;", "O doce encontro da mulher amada.", "", "Alegria é a dádiva melhor da vida,", "Como o sol sobre os campos floridos;", "O sorriso inocente da criança,", "Como o suave perfume que embriaga,", "Como do mar bravio, as belas vagas;", "Como o vento soprando seus bramidos.", "", "Alegria é o que sinto algumas vezes,", "Nas manhãs claras quando brilha o sol;", "Quando uma abelha passa zumbindo", "Em busca da sua matéria-prima,", "Na ânsia do trabalho útil que anima,", "E cortando o ar se perde no arrebol.", "", "Alegria é o que sinto ajudando alguém", "Que precisa da minha mão amiga,", "Para trilhar o caminho certo;", "É a realização que sinto ao ser útil,", "Ao ver transformada uma vida fútil,", "Tirando-a da miséria e da fadiga.", "", "Alegria é o que sinto nas pescarias,", "Quando é fisgado o peixe grandão;", "E os companheiros na justa euforia,", "Sem nenhuma inveja, sem nenhum ciúme,", "Solidários deixam os outros cardumes", "E correm todos a me dar a mão.", "", "Alegria é ter a vida ao ar puro,", "Beber água fresca de uma mina;", "Sentir o cheiro da terra molhada", "E viver sem nenhuma opressão,", "Cantando a nossa própria canção,", "Vendo tudo que a vista descortina.", "", "Alegria é uma sensação da própria alma,", "É um mistério que vem do fundo;", "Que se expressa em nossa superfície,", "Não é o fruto de mera fantasia,", "Miragem que ao sedento ludibria;", "É o único bem gracioso neste mundo."] },
+                    { type: "poem", title: "O Choro", verses: ["O choro é voz da alma,", "Mórbida trama da fatalidade;", "Executor sádico - profundo,", "De ordens recebidas", "Do misterioso e inescrutável mundo.", "", "O choro é sátira do riso,", "O outro lado da vida", "Sem pontos cardeais,", "Onde não cantam os passarinhos,", "Onde todos são iguais.", "", "O choro é liberdade -", "Não pode ser abafado;", "É direito universal,", "Não tem código de ética", "Nem forma definida,", "Faz parte da própria", "Vida como o bem e o mal."] },
+                    { type: "poem", title: "Choro da Alma", verses: ["Na rota do choro", "Todos são iguais,", "Não há mapas nem bússolas", "Nem os pontos cardeais.", "", "Na superfície das águas", "Não se pode ver o fundo", "Onde as almas mergulham", "Em mistérios profundos.", "", "Elas choram quando chegam,", "Também choram na partida;", "Não há código de ética", "Nem forma definida.", "", "Porque choro é liberdade,", "É como o bem e o mal;", "Faz parte da própria vida,", "É direito universal."] },
+                ]
+            },
+            "poesia": {
+                title: "A Arte da Poesia",
+                content: [
+                    { type: "poem", title: "A Poesia", verses: ["Poesia é suspiro da alma de tristeza ou prazer", "Poesia é também saudade ou medo de se perder", "Poesia é vida que se expressa na alma do mundo inteiro", "São vozes de esperança ou gritos de desespero", "", "Em versos se descreve tudo que é belo e puro", "Os versos também apontam o lixo atrás do muro", "Poesia é liberdade estética que vai contrariando os meios", "Supera códigos de ética, expondo o belo e o feio"] },
+                    { type: "poem", title: "Meu Corpo e Meu Esqueleto", verses: ["Não fico mal-humorado com meu tornozelo", "Inchado, sei que não são falsos prismas", "Os meus grandes aneurismas.", "", "Tenho a vida num espeto", "Neste meu bom esqueleto", "Meus ossos, minhas costelas", "E minhas pernas tão belas.", "", "Quero doar para a ciência", "Toda a minha essência.", "Nestas rimas paralelas", "Eu vejo minhas costelas.", "", "Meu fígado, peço que evite,", "Pois já tive hepatite.", "Minha pele não pode ser doada", "Por estar muito enrugada.", "", "Minhas marcas digitais", "São segredos ancestrais.", "Em meu cérebro e dedos", "Eu levo os meus segredos.", "", "Com redondilhas maiores", "Ou na forma mais completa,", "Eu deixo correr nas veias", "O meu sangue de poeta.", "", "Da minha boca fechada", "Não se ouvirá mais grito,", "Pois estarei bem longe", "Nas asas do infinito.", "", "Meus olhos para um pateta", "Que no correr da vida,", "Teimou em ser poeta.", "", "É pena perder hormônios,", "Deteriorar o cérebro", "Com todos os seus neurônios.", "", "Esqueçam o que foi dito", "Nesta sátira falaz", "Que toda a terra desfaz.", "", "Sou grato a Deus pela vida,", "Pelos meus onze filhos", "E minha esposa querida.", "", "Lá nos arcanos divinos", "Está meu grande tesouro,", "Faz parte do meu destino.", "", "Foi banido dentre os mortais...", "Me esqueçam, não volto nunca mais!"] },
+                ]
+            },
+            "forcas_natureza": {
+                title: "Forças da Natureza",
+                content: [
+                    { type: "poem", title: "Quebrando o Mutismo do Infinito", verses: ["Gases levantam a tampa do vulcão,", "Lançando lavas em toda direção;", "A vontade suprema se faz em grito,", "Quebrando o mutismo do infinito.", "", "Grande espetáculo! Indescritível!", "Rios cruzam espaços indefinidos,", "Há vozes fantasmagóricas no abismo,", "Enquanto vapores sobem enegrecidos.", "", "Estrondos e calor incandescente,", "Enquanto gesta o mundo embrião;", "Um clarão ilumina, o éter inflama;", "A natureza geme em convulsão.", "", "Deitados em seus leitos, mostrando as tetas,", "Estão montanhas cobertas de vapores;", "Que vão firmando lá nos vales suas bases,", "Tendo nuvens por negros cobertores.", "", "Rebelde, a terra surge em estertores,", "Protestando contra os invasores", "Que invadem suas entranhas com disfarces,", "Transformando suas rosadas faces.", "", "Orgulhoso, o sol reluz garboso;", "Treme o universo de estranho gozo...", "A vida em potencial já desabrocha,", "O limo se agarra à negra rocha."] },
+                    { type: "poem", title: "A Tempestade", verses: ["O mar em fúria chicoteia a rocha,", "Temerário, o vento em seu caminho", "Leva tudo em suas asas invisíveis,", "Quebrando galhos, destruindo ninhos.", "", "O céu azul em chumbo se transforma", "Como rocha de quartzo e granito,", "Tal como um gigante ronca a trovoada", "E o relâmpago rasga o infinito.", "", "Voam os pássaros espavoridos,", "Homens e animais procuram abrigo,", "Há pavor nos bosques e nos campos", "Com as visões da morte e do perigo.", "", "Dantesco e majestoso espetáculo;", "Com o granizo, cai a chuva grossa,", "Enquanto o camponês suspira fundo", "Pensando no destino da sua roça.", "", "A enxurrada vai carregando cercas,", "Desmanchando todos os canteiros,", "Soltando os animais do seu curral", "E carregando os porcos do chiqueiro.", "", "Batendo feroz nas fortes rochas,", "Indiferente a tudo lá na serra;", "Ao longe vê-se o mar ainda em fúria,", "Em sua milenar e insana guerra."] },
+                ]
+            },
+        };
+
+        const navMenu = document.getElementById('nav-menu');
+        const mobileNavSelect = document.getElementById('mobile-nav-select');
+        const contentArea = document.getElementById('content-area');
+
+        const navigationItems = [
+            { id: 'sobre', text: 'Sobre a Obra' },
+            { id: 'fe', text: 'Fé e Espiritualidade' },
+            { id: 'familia', text: 'Família e Valores' },
+            { id: 'natureza', text: 'Natureza e Vida Simples' },
+            { id: 'critica', text: 'Reflexão e Crítica Social' },
+            { id: 'existencia', text: 'Ciência e Existência' },
+            { id: 'emocoes', text: 'Emoções e Sentimentos' },
+            { id: 'poesia', text: 'A Arte da Poesia' },
+            { id: 'forcas_natureza', text: 'Forças da Natureza' }
+        ];
+
+        // Populate navigation
+        navigationItems.forEach(item => {
+            // Desktop Nav
+            const navLink = document.createElement('a');
+            navLink.href = '#';
+            navLink.dataset.content = item.id;
+            navLink.className = 'nav-link block py-2 px-4 rounded-md text-[#5E5046] hover:bg-[#D5C6B5] hover:text-[#4A403A]';
+            navLink.textContent = item.text;
+            navMenu.appendChild(navLink);
+
+            // Mobile Nav
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.text;
+            mobileNavSelect.appendChild(option);
+        });
+
+        function renderContent(key) {
+            const data = contentData[key];
+            if (!data) return;
+
+            let html = `<div class="content-fade-in"><h2 class="text-4xl font-bold font-['Lora'] text-[#4A403A] mb-8 border-b-2 border-[#D5C6B5] pb-4">${data.title}</h2>`;
+
+            data.content.forEach(item => {
+                html += `<div class="mb-12">`;
+                html += `<h3>${item.title}</h3>`;
+                if (item.type === 'poem') {
+                    item.verses.forEach(verse => {
+                       html += `<p class="poem-verse">${verse || '&nbsp;'}</p>`;
+                    });
+                } else if (item.type === 'prose') {
+                    html += `<p>${item.text.replace(/\n/g, '<br><br>')}</p>`;
+                }
+                html += `</div>`;
+            });
+            html += `</div>`;
+
+            contentArea.innerHTML = html;
+        }
+
+        function setActiveLink(key) {
+            // Desktop
+            document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.content === key);
+            });
+            // Mobile
+            mobileNavSelect.value = key;
+        }
+
+        function handleNavigation(key) {
+            renderContent(key);
+            setActiveLink(key);
+        }
+
+        // Event Listeners
+        navMenu.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.target.matches('.nav-link')) {
+                const contentKey = e.target.dataset.content;
+                handleNavigation(contentKey);
+            }
+        });
+        
+        mobileNavSelect.addEventListener('change', (e) => {
+             const contentKey = e.target.value;
+             handleNavigation(contentKey);
+        });
+
+
+        // Initial Load
+        handleNavigation('sobre');
+
+    </script>
+</body>
+</html>
